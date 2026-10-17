@@ -6,7 +6,8 @@
 <meta name="description" content="血液透析管路安全衛教影片：預防管路滑脫及異常通報。">
 <style>
 :root{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;color:#183943;background:#f2f8fa}*{box-sizing:border-box}body{margin:0}header{background:#176779;color:white;padding:28px 18px;text-align:center}header h1{margin:0 0 8px;font-size:clamp(24px,5vw,36px)}main{max-width:840px;margin:24px auto;padding:0 16px}.panel{background:white;border-radius:16px;padding:24px;margin-bottom:18px;box-shadow:0 3px 15px #143c4810}.video{aspect-ratio:16/9;background:#173e4b;border-radius:12px;overflow:hidden}.video iframe{width:100%;height:100%;border:0}h2{font-size:20px;margin-top:0}li{margin:10px 0;line-height:1.7}.note{font-size:14px;color:#4c6670;line-height:1.7}footer{text-align:center;color:#526a73;padding:24px}.placeholder{display:flex;align-items:center;justify-content:center;height:100%;color:white;text-align:center;padding:20px}
-.counter-panel{text-align:center}.counter-value{font-size:clamp(28px,6vw,42px);font-weight:750;color:#176779;margin:8px 0}.counter-caption{font-size:13px;color:#526a73}.education h3{font-size:18px;color:#176779;margin:26px 0 12px;line-height:1.5}.education p,.education li{line-height:1.9}.education p{margin:10px 0 16px}.education ol{padding-left:1.5em}.education li{padding-left:4px;margin:10px 0}.education .sublist{list-style-type:decimal;padding-left:1.6em;margin-top:8px}.education .sublist li{margin:4px 0}@media(max-width:600px){.panel{padding:19px}.education h3{font-size:17px}}
+.counter-panel{position:absolute;top:14px;right:16px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);border-radius:12px;padding:9px 14px;text-align:center;min-width:150px}.counter-panel .counter-title{font-size:13px;font-weight:500;margin:0 0 3px;color:#fff}.counter-value{font-size:21px;font-weight:750;color:#fff;line-height:1.4}header{position:relative}@media(max-width:1050px){header{padding-top:94px}}.education h3{font-size:18px;color:#176779;margin:26px 0 12px;line-height:1.5}.education p,.education li{line-height:1.9}.education p{margin:10px 0 16px}.education ol{padding-left:1.5em}.education li{padding-left:4px;margin:10px 0}.education .sublist{list-style-type:decimal;padding-left:1.6em;margin-top:8px}.education .sublist li{margin:4px 0}@media(max-width:600px){.panel{padding:19px}.education h3{font-size:17px}}
+@media(max-width:600px){.counter-panel{top:12px;right:12px;min-width:0;padding:7px 10px}.counter-panel .counter-title{font-size:11px}.counter-value{font-size:16px}header{padding-top:92px}}
 </style>
 <!-- GA4 追蹤設定 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-N80KEDL1JQ"></script>
@@ -15,7 +16,7 @@ window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
 gtag('js',new Date());gtag('config','G-N80KEDL1JQ');
 </script>
 </head>
-<body><header><h1>高雄榮總血液透析室衛教小天地</h1><div>透析知識輕鬆學・健康照護一起來</div></header>
+<body><header><h1>高雄榮總血液透析室衛教小天地</h1><div>透析知識輕鬆學・健康照護一起來</div><div class="counter-panel" aria-labelledby="counter-title"><div id="counter-title" class="counter-title">網站累積瀏覽次數</div><div id="view-count" class="counter-value" aria-live="polite">載入中…</div></div></header>
 <main><section class="panel"><h2>血液透析管路安全衛教影片</h2><div class="video" id="video"><div class="placeholder">請先在 index.html 設定 YouTube 影片 ID</div></div><p class="note">本影片提供血液透析管路安全衛教，若有任何疑問，請洽護理人員。</p></section>
 <section class="panel education">
 <h2>衛教重點</h2>
@@ -50,27 +51,18 @@ gtag('js',new Date());gtag('config','G-N80KEDL1JQ');
 </ol></li>
 </ol>
 </section>
-<section class="panel counter-panel" aria-labelledby="counter-title">
-<h2 id="counter-title">網站累積瀏覽次數</h2>
-<div id="view-count" class="counter-value" aria-live="polite">設定中</div>
-<p class="counter-caption">統計網站開啟次數，非不重複訪客或完成衛教人數。</p>
-</section>
 </main><footer>高雄榮總血液透析室</footer>
 <script>
-// 設定完成後，將下方網址換成 Cloudflare Worker 的正式網址（保留 /count）。
-const COUNTER_API = '';
+// Cloudflare Worker：每次開啟網站送出一次 POST，回傳最新累積次數。
+const COUNTER_API = 'https://qcc-dialysis-counter.xd821225.workers.dev/visit';
 async function updateViewCount() {
   const el = document.getElementById('view-count');
-  if (!COUNTER_API) {
-    el.textContent = '尚未啟用';
-    return;
-  }
   try {
     const response = await fetch(COUNTER_API, {method: 'POST', cache: 'no-store'});
     if (!response.ok) throw new Error('Counter service unavailable');
     const data = await response.json();
-    if (!Number.isSafeInteger(data.views) || data.views < 0) throw new Error('Invalid count');
-    el.textContent = data.views.toLocaleString('zh-TW') + ' 次';
+    if (!Number.isSafeInteger(data.total) || data.total < 0) throw new Error('Invalid count');
+    el.textContent = data.total.toLocaleString('zh-TW') + ' 次';
   } catch (error) {
     el.textContent = '暫時無法顯示';
   }
