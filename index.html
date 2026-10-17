@@ -17,24 +17,45 @@ gtag('js',new Date());gtag('config','G-N80KEDL1JQ');
 <body><header><h1>血液透析管路安全衛教</h1><div>預防管路滑脫・守護透析安全</div></header>
 <main><section class="panel"><h2>觀看衛教影片</h2><div class="video" id="video"><div class="placeholder">請先在 index.html 設定 YouTube 影片 ID</div></div><p class="note">影片播放進度僅用於彙整匿名使用統計；不代表已完成個別病人的衛教確認。</p></section>
 <section class="panel"><h2>衛教重點</h2><ul><li>治療期間避免突然抬起或拉扯穿刺手臂及血液管路。</li><li>留意穿刺處與管路固定狀況；如發現滲血、鬆脫或異常，立即通知護理人員。</li><li>若有管路滑脫或出血，立即呼叫護理人員協助處理，勿自行重新插針。</li></ul></section>
-<section class="panel"><h2>關於使用統計</h2><p class="note">本頁可依院方核准設定 Google Analytics 4，記錄頁面開啟與影片播放里程碑，不要求輸入姓名或病歷號。若未經院方核准，請勿啟用外部分析服務。</p></section></main><footer>血液透析管路安全衛教｜正式上線前請完成院內審核</footer>
+<section class="panel"><h2>關於使用統計</h2><p class="note">本頁可依院方核准設定 Google Analytics 4，記錄頁面開啟與影片播放事件，不要求輸入姓名或病歷號。若未經院方核准，請勿啟用外部分析服務。</p></section></main><footer>血液透析管路安全衛教｜正式上線前請完成院內審核</footer>
 <script>
-// ===== 必填：貼入 YouTube 影片 ID（不是完整網址） =====
 const VIDEO_ID = 'TVmt490VhzM';
-const milestones = new Set();let player, timer, hasStarted=false;
+let player;
+let hasStarted = false;
+let completed = false;
 const source = new URLSearchParams(location.search).get('utm_source') === 'qrcode' ? 'qrcode' : 'other';
-function track(name, params={}){if(typeof window.gtag==='function')window.gtag('event',name,{...params,entry_source:source});}
-if(/^[\w-]{11}$/.test(VIDEO_ID)){
- document.getElementById('video').innerHTML='<div id="player"></div>';
- const tag=document.createElement('script');tag.src='https://www.youtube.com/iframe_api';document.head.appendChild(tag);
- window.onYouTubeIframeAPIReady=()=>{player=new YT.Player('player',{videoId:VIDEO_ID,playerVars:{playsinline:1,rel:0,enablejsapi:1,origin:location.origin},events:{onStateChange:onStateChange}})};
+function track(name, params = {}) {
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', name, {...params, entry_source: source});
+  }
 }
-function onStateChange(e){
- if(e.data===YT.PlayerState.PLAYING){if(!hasStarted){hasStarted=true;track('qcc_video_start',{video_id:VIDEO_ID});}if(!timer)timer=setInterval(checkProgress,1000);}
- else{clearInterval(timer);timer=null;if(e.data===YT.PlayerState.ENDED){trackMilestone(100);track('qcc_video_complete',{video_id:VIDEO_ID});}}
+if (/^[\w-]{11}$/.test(VIDEO_ID)) {
+  document.getElementById('video').innerHTML = '<div id="player"></div>';
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+  window.onYouTubeIframeAPIReady = () => {
+    player = new YT.Player('player', {
+      videoId: VIDEO_ID,
+      playerVars: {playsinline: 1, rel: 0, enablejsapi: 1, origin: location.origin},
+      events: {onStateChange: onStateChange}
+    });
+  };
 }
-function trackMilestone(percent){if(milestones.has(percent))return;milestones.add(percent);track('qcc_video_progress',{video_id:VIDEO_ID,percent:percent});}
-function checkProgress(){if(!player||typeof player.getDuration!=='function')return;const duration=player.getDuration(),current=player.getCurrentTime();if(!(duration>0))return;const pct=current/duration*100;for(const step of [25,50,75])if(pct>=step)trackMilestone(step);}
-// 透過 QR 專屬網址進入時，記錄一筆入口事件。此數字不是相機掃描的硬體計數。
-if(source==='qrcode')track('qcc_qr_landing');
-</script></body></html>
+function onStateChange(e) {
+  if (e.data === YT.PlayerState.PLAYING) {
+    if (!hasStarted || completed) {
+      hasStarted = true;
+      completed = false;
+      track('qcc_video_start', {video_id: VIDEO_ID});
+    }
+  } else if (e.data === YT.PlayerState.ENDED && !completed) {
+    completed = true;
+    track('qcc_video_complete', {video_id: VIDEO_ID});
+  }
+}
+// QR 專屬網址進站事件；不等於實際相機掃描次數。
+if (source === 'qrcode') track('qcc_qr_landing');
+</script>
+</body>
+</html>
